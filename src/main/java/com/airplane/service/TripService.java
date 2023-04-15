@@ -199,7 +199,7 @@ public class TripService {
 	  * @param city
 	  * @return
 	  */
-	  List<Trip> getTripsFrom(String city) {
+	 public List<Trip> getTripsFrom(String city) {
 		  
 		  List<Trip> tripsFromList = new ArrayList<Trip>();
 		  
@@ -235,7 +235,7 @@ public class TripService {
 	   * @param city
 	   * @return
 	   */
-  List<Trip> getTripsTo(String city) {
+	 public List<Trip> getTripsTo(String city) {
 		  
 		  List<Trip> tripsToList = new ArrayList<Trip>();
 		  
