@@ -12,6 +12,7 @@ import java.util.Set;
 
 import com.airplane.connections.Connections;
 import com.airplane.model.Passenger;
+import com.airplane.model.Trip;
 
 public class PassengerService {
 	
@@ -69,10 +70,52 @@ public class PassengerService {
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
+			}finally {
+				Connections.closeConnection();
+				
 			}
 			return allUsers;
 			
 	 }
+	
+	/**
+	 * Method returns a Set starting from a certain id
+	 * @param offset
+	 * @param perPage
+	 * @param sort
+	 * @return
+	 */
+	public Set<Passenger> get(int offset, int perPage, String sort) {
+		Set<Passenger> passengers = new LinkedHashSet<Passenger>();
+		
+		
+		try {
+			Connection connection = Connections.getConnection();
+			String sql = "SELECT * FROM passengers WHERE id >= ? ORDER BY " + sort + " LIMIT ?";
+			PreparedStatement statement = connection.prepareStatement(sql);
+			statement.setInt(1, offset);
+			statement.setInt(2, perPage);
+			
+			
+			ResultSet resultSet = statement.executeQuery();
+			while(resultSet.next()) {
+				Passenger passenger = new Passenger();
+				passenger.setId(resultSet.getInt("id"));
+				passenger.setName(resultSet.getString("name"));
+				passenger.setPhone(resultSet.getString("phone"));
+				passenger.setCountry(resultSet.getString("country"));
+				passenger.setCity(resultSet.getString("city"));
+				passengers.add(passenger);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally {
+			Connections.closeConnection();
+			
+		}
+			
+		return passengers;
+	}
 	 
 	
 	/**
@@ -95,6 +138,9 @@ public class PassengerService {
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}finally {
+			Connections.closeConnection();
+			
 		}
 		  return passenger;
 	 }
@@ -120,6 +166,9 @@ public class PassengerService {
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}finally {
+			Connections.closeConnection();
+			
 		}
 		 return passenger;
 	 }
@@ -137,6 +186,9 @@ public class PassengerService {
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			}finally {
+				Connections.closeConnection();
+				
 			}
 	 }
 	 
@@ -164,10 +216,87 @@ public class PassengerService {
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
+			}finally {
+				Connections.closeConnection();
+				
 			}
 		 return passengersOfTrip;
 	 }
 	 
+	 /**
+	  * Method register new Trip, and passenger
+	  * @param trip
+	  * @param passenger
+	  */
+	 public void registerTrip(Trip trip, Passenger passenger) {
+		 try {
+				Connection connection = Connections.getConnection();
+				String sql = "INSERT INTO trip(id,company_id,aircraft_model,town_from,town_to,time_out,time_in) VALUES(?,?,?,?,?,?,?)";
+				PreparedStatement statementForCreateTrip = connection.prepareStatement(sql);
+				
+				statementForCreateTrip.setInt(1, trip.getId());
+				statementForCreateTrip.setInt(2, trip.getCompanyId());
+				statementForCreateTrip.setString(3, trip.getAircraftModel());
+				statementForCreateTrip.setString(4, trip.getTownFrom());
+				statementForCreateTrip.setString(5, trip.getTownTo());
+				statementForCreateTrip.setString(6, trip.getTimeOut());
+				statementForCreateTrip.setString(7, trip.getTimeIn());
+				statementForCreateTrip.executeUpdate();
+				
+				Statement statement = connection.createStatement();
+				
+				ResultSet resultSet2 = statement.executeQuery("SELECT * FROM passengers ORDER BY id DESC LIMIT 1");
+				if(resultSet2.next()) {
+				passenger.setId(resultSet2.getInt("id"));
+				}
+				/**
+				 * Calling our save method
+				 */
+				save(passenger);
+				
+				String sql2 = "INSERT INTO pass_in_trip (trip_id, passenger_id, date, place) VALUES(?,?,?,?)";
+				PreparedStatement statementForPassInTrip = connection.prepareStatement(sql2);
+				statementForPassInTrip.setInt(1, trip.getId());
+				statementForPassInTrip.setInt(2, passenger.getId() + 1);
+				statementForPassInTrip.setString(3, "1900-01-01 08:01:00.000");
+				statementForPassInTrip.setString(4, "7a");
+				
+				statementForPassInTrip.executeUpdate();
+				
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}finally {
+				Connections.closeConnection();
+				
+			}
+	 }
 	 
+	 /**
+	  * Method cancel Trip, deletes passenger and trip
+	  * @param passengerId
+	  * @param tripNumber
+	  */
+	 public void cancelTrip(int passengerId, long tripNumber) {
+		 
+		 try {
+			 Connection connection = Connections.getConnection();
+			 String sql = "DELETE from pass_in_trip WHERE trip_id = "  + tripNumber;
+			 Statement statement = connection.createStatement();
+			 statement.executeUpdate(sql);
+			 sql = "DELETE FROM trip WHERE id = " + tripNumber;
+			 
+			 statement.executeUpdate(sql);
+			 
+			 /**
+			  * Calling our passenger delete method
+			  */
+			 delete(passengerId);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally {
+			Connections.closeConnection();
+			
+		}
+	 }
 	
 }
