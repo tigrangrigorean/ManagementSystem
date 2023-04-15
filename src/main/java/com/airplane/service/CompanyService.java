@@ -109,7 +109,7 @@ public class CompanyService {
 	 
 	/**
 	 * Method saves new Company
-	 * @param passenger
+	 * @param company
 	 * @return
 	 */
 	public Company save(Company company) {
@@ -135,7 +135,7 @@ public class CompanyService {
 	/**
 	 * Method updates company by ID
 	 * @param id
-	 * @param passenger
+	 * @param company
 	 * @return
 	 */
 	 public Company update(int id,Company company) {
@@ -160,7 +160,7 @@ public class CompanyService {
 	
 	 /**
 	  * Method removes company by id
-	  * @param passengerId
+	  * @param companyId
 	  */
 	 public void delete(int companyId) {
 		 try {
@@ -169,7 +169,6 @@ public class CompanyService {
 				String sql = "DELETE FROM company WHERE id = " + companyId;
 				statement.executeUpdate(sql);
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}finally {
 				Connections.closeConnection();

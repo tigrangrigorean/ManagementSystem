@@ -120,7 +120,7 @@ public class TripService {
 	 
 	/**
 	 * Method saves new Trip
-	 * @param passenger
+	 * @param trip
 	 * @return
 	 */
 	public Trip save(Trip trip) {
@@ -150,7 +150,7 @@ public class TripService {
 	/**
 	 * Method updates trip by ID
 	 * @param id
-	 * @param passenger
+	 * @param trip
 	 * @return
 	 */
 	 public Trip update(int id,Trip trip) {
@@ -178,7 +178,7 @@ public class TripService {
 	
 	 /**
 	  * Method removes trip by id
-	  * @param passengerId
+	  * @param tripId
 	  */
 	 public void delete(int tripId) {
 		 try {
