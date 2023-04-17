@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import com.airplane.connections.Connections;
@@ -24,7 +25,7 @@ public class PassengerService {
 	public Passenger getById(int id) {
 		Passenger passenger = null;
 		try {
-			Connection connection = Connections.getConnection();
+			Connection connection = Connections.getInstance().getConnection();
 			Statement statement = connection.createStatement();
 			String sql = "SELECT * FROM passengers WHERE id = " + id;
 			ResultSet resultSet = statement.executeQuery(sql);
@@ -37,12 +38,17 @@ public class PassengerService {
 				passenger.setPhone(resultSet.getString("phone"));
 				passenger.setCountry(resultSet.getString("country"));
 				passenger.setCity(resultSet.getString("city"));
+			}else {
+				throw new NoSuchElementException();
 			}
-			
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			Connections.closeConnection();
+		} catch (SQLException a) {
+			System.out.println("SQL Command Exception");
+		} catch(NoSuchElementException b) {
+			throw new NoSuchElementException("Can't find element in database");
+		} catch(NullPointerException c) {
+			throw new NullPointerException("Result Set,statement, or connection is Null");
+		}finally {
+			Connections.getInstance().closeConnection();
 		}
 		return passenger;
 	}
@@ -55,7 +61,7 @@ public class PassengerService {
 	public Set<Passenger> getAll() {
 		 Set<Passenger> allUsers = new LinkedHashSet<Passenger>();
 			try {
-				Connection connection = Connections.getConnection();
+				Connection connection = Connections.getInstance().getConnection();
 				Statement statement = connection.createStatement();
 				String sql = "SELECT * FROM passengers";
 				ResultSet resultSet = statement.executeQuery(sql);
@@ -69,10 +75,11 @@ public class PassengerService {
 					allUsers.add(passenger);
 				}
 			} catch (SQLException e) {
-				e.printStackTrace();
+				System.out.println("SQL Command Exception");
+			} catch(NullPointerException c) {
+				throw new NullPointerException("Result Set,statement, or connection is Null");
 			}finally {
-				Connections.closeConnection();
-				
+				Connections.getInstance().closeConnection();
 			}
 			return allUsers;
 			
@@ -90,7 +97,7 @@ public class PassengerService {
 		
 		
 		try {
-			Connection connection = Connections.getConnection();
+			Connection connection = Connections.getInstance().getConnection();
 			String sql = "SELECT * FROM passengers WHERE id >= ? ORDER BY " + sort + " LIMIT ?";
 			PreparedStatement statement = connection.prepareStatement(sql);
 			statement.setInt(1, offset);
@@ -108,10 +115,11 @@ public class PassengerService {
 				passengers.add(passenger);
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			System.out.println("SQL Command Exception");
+		} catch(NullPointerException c) {
+			throw new NullPointerException("Result Set,statement, or connection is Null");
 		}finally {
-			Connections.closeConnection();
-			
+			Connections.getInstance().closeConnection();
 		}
 			
 		return passengers;
@@ -126,7 +134,7 @@ public class PassengerService {
 	public Passenger save(Passenger passenger) {
 		 
 		 try {
-			Connection connection = Connections.getConnection();
+			Connection connection = Connections.getInstance().getConnection();
 			String sql = "INSERT INTO passengers(name,phone,country,city) VALUES(?,?,?,?)";
 			PreparedStatement statement = connection.prepareStatement(sql);
 			
@@ -137,10 +145,11 @@ public class PassengerService {
 			statement.executeUpdate();
 			
 		} catch (SQLException e) {
-			e.printStackTrace();
+			System.out.println("SQL command exception");
+		} catch(NullPointerException c) {
+			throw new NullPointerException("Result Set,statement, or connection is Null");
 		}finally {
-			Connections.closeConnection();
-			
+			Connections.getInstance().closeConnection();	
 		}
 		  return passenger;
 	 }
@@ -154,21 +163,30 @@ public class PassengerService {
 	 public Passenger update(int id,Passenger passenger) {
 		 		 
 		 try {
-			Connection connection = Connections.getConnection();
+			Connection connection = Connections.getInstance().getConnection();
 			String sql = "UPDATE passengers SET name = ?,phone = ?, country = ?,city = ? WHERE id = " + id;
 			PreparedStatement statement = connection.prepareStatement(sql);
 			
-			statement.setString(1, passenger.getName());
-			statement.setString(2, passenger.getPhone());
-			statement.setString(3, passenger.getCountry());
-			statement.setString(4, passenger.getCity());
-			statement.executeUpdate();
+			ResultSet rs = connection.createStatement().executeQuery("SELECT * FROM passengers WHERE id = " + id);
+			if(rs.next()) {
+				statement.setString(1, passenger.getName());
+				statement.setString(2, passenger.getPhone());
+				statement.setString(3, passenger.getCountry());
+				statement.setString(4, passenger.getCity());
+				statement.executeUpdate();
+			} else {
+				throw new NoSuchElementException();
+			}
+			
 			
 		} catch (SQLException e) {
-			e.printStackTrace();
+			System.out.println("SQL command exception");
+		} catch(NoSuchElementException b) {
+			throw new NoSuchElementException("Can't find element in database");
+		} catch(NullPointerException c) {
+			throw new NullPointerException("Result Set,statement, or connection is Null");
 		}finally {
-			Connections.closeConnection();
-			
+			Connections.getInstance().closeConnection();
 		}
 		 return passenger;
 	 }
@@ -179,16 +197,23 @@ public class PassengerService {
 	  */
 	 public void delete(int passengerId) {
 		 try {
-				Connection connection = Connections.getConnection();
+				Connection connection = Connections.getInstance().getConnection();
 				Statement statement = connection.createStatement();
 				String sql = "DELETE FROM passengers WHERE id = " + passengerId;
+				ResultSet rs = statement.executeQuery("SELECT from passengers WHERE id = " + passengerId);
+				if(rs.next()) {
 				statement.executeUpdate(sql);
+				}else {
+					throw new NoSuchElementException();
+				}
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}finally {
-				Connections.closeConnection();
-				
+				System.out.println("SQL command exception");
+			} catch(NoSuchElementException b) {
+				throw new NoSuchElementException("Can't find element in database");
+			} catch(NullPointerException c) {
+				throw new NullPointerException("Result Set,statement, or connection is Null");
+			} finally {
+				Connections.getInstance().closeConnection();
 			}
 	 }
 	 
@@ -201,7 +226,7 @@ public class PassengerService {
 		 
 		 List <Passenger> passengersOfTrip= new ArrayList<Passenger>();
 		 try {
-				Connection connection = Connections.getConnection();
+				Connection connection = Connections.getInstance().getConnection();
 				Statement statement = connection.createStatement();
 				String sql = "SELECT p.id, p.name, p.phone, p.country, p.city "
 						+ "FROM passengers p "
@@ -215,10 +240,13 @@ public class PassengerService {
 					passengersOfTrip.add(passenger);
 				}
 			} catch (SQLException e) {
-				e.printStackTrace();
-			}finally {
-				Connections.closeConnection();
-				
+				System.out.println("SQL command exception");
+			} catch(NoSuchElementException b) {
+				throw new NoSuchElementException("Can't find element in database");
+			} catch(NullPointerException c) {
+				throw new NullPointerException("Result Set,statement, or connection is Null");
+			} finally {
+				Connections.getInstance().closeConnection();
 			}
 		 return passengersOfTrip;
 	 }
@@ -230,7 +258,7 @@ public class PassengerService {
 	  */
 	 public void registerTrip(Trip trip, Passenger passenger) {
 		 try {
-				Connection connection = Connections.getConnection();
+				Connection connection = Connections.getInstance().getConnection();
 				String sql = "INSERT INTO trip(id,company_id,aircraft_model,town_from,town_to,time_out,time_in) VALUES(?,?,?,?,?,?,?)";
 				PreparedStatement statementForCreateTrip = connection.prepareStatement(sql);
 				
@@ -264,10 +292,11 @@ public class PassengerService {
 				statementForPassInTrip.executeUpdate();
 				
 			} catch (SQLException e) {
-				e.printStackTrace();
+				System.out.println("SQL command exception");
+			} catch(NullPointerException c) {
+				throw new NullPointerException("Result Set,statement, or connection is Null");
 			}finally {
-				Connections.closeConnection();
-				
+				Connections.getInstance().closeConnection();
 			}
 	 }
 	 
@@ -279,23 +308,30 @@ public class PassengerService {
 	 public void cancelTrip(int passengerId, long tripNumber) {
 		 
 		 try {
-			 Connection connection = Connections.getConnection();
+			 Connection connection = Connections.getInstance().getConnection();
 			 String sql = "DELETE from pass_in_trip WHERE trip_id = "  + tripNumber;
 			 Statement statement = connection.createStatement();
+			 ResultSet rs = statement.executeQuery("SELECT * FROM pass_in_trip WHERE trip_id = " + tripNumber);
 			 statement.executeUpdate(sql);
 			 sql = "DELETE FROM trip WHERE id = " + tripNumber;
 			 
+			 if(rs.next()) {
 			 statement.executeUpdate(sql);
-			 
+			 } else {
+				 throw new NoSuchElementException();
+			 }
 			 /**
 			  * Calling our passenger delete method
 			  */
 			 delete(passengerId);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			System.out.println("SQL command exception");
+		} catch(NoSuchElementException b) {
+			throw new NoSuchElementException("Can't find element in database");
+		} catch(NullPointerException c) {
+			throw new NullPointerException("Result Set,statement, or connection is Null");
 		}finally {
-			Connections.closeConnection();
-			
+			Connections.getInstance().closeConnection();
 		}
 	 }
 	

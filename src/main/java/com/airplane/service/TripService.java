@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import com.airplane.connections.Connections;
@@ -23,7 +24,7 @@ public class TripService {
 	public Trip getById(int id) {
 		Trip trip = null;
 		try {
-			Connection connection = Connections.getConnection();
+			Connection connection = Connections.getInstance().getConnection();
 			Statement statement = connection.createStatement();
 			String sql = "SELECT * FROM trip WHERE id = " + id;
 			ResultSet resultSet = statement.executeQuery(sql);
@@ -37,12 +38,18 @@ public class TripService {
 				trip.setTownTo(resultSet.getString("town_to"));
 				trip.setTimeOut(resultSet.getString("time_out"));
 				trip.setTimeIn(resultSet.getString("time_in"));
+			}else {
+				throw new NoSuchElementException();
 			}
 			
-		} catch (SQLException e) {
-			e.printStackTrace();
+		} catch (SQLException a) {
+			System.out.println("SQL Command Exception");
+		} catch(NoSuchElementException b) {
+			throw new NoSuchElementException("Can't find element in database");
+		} catch(NullPointerException c) {
+			throw new NullPointerException("Result Set,statement, or connection is Null");
 		} finally {
-			Connections.closeConnection();
+			Connections.getInstance().closeConnection();
 		}
 		return trip;
 	}
@@ -54,7 +61,7 @@ public class TripService {
 	public Set<Trip> getAll() {
 		 Set<Trip> allTrips = new LinkedHashSet<Trip>();
 			try {
-				Connection connection = Connections.getConnection();
+				Connection connection = Connections.getInstance().getConnection();
 				Statement statement = connection.createStatement();
 				String sql = "SELECT * FROM trip";
 				ResultSet resultSet = statement.executeQuery(sql);
@@ -69,11 +76,12 @@ public class TripService {
 					trip.setTimeIn(resultSet.getString("time_in"));
 					allTrips.add(trip);
 				}
-			} catch (SQLException e) {
-				e.printStackTrace();
+			}  catch (SQLException e) {
+				System.out.println("SQL Command Exception");
+			} catch(NullPointerException c) {
+				throw new NullPointerException("Result Set,statement, or connection is Null");
 			}finally {
-				Connections.closeConnection();
-				
+				Connections.getInstance().closeConnection();	
 			}
 			return allTrips;
 	 }
@@ -89,7 +97,7 @@ public class TripService {
 		Set<Trip> allTrips = new LinkedHashSet<Trip>();
 		
 		try {
-			Connection connection = Connections.getConnection();
+			Connection connection = Connections.getInstance().getConnection();
 			String sql = "SELECT * FROM trip WHERE id >= ? ORDER BY " + sort + " LIMIT ?";
 			PreparedStatement statement = connection.prepareStatement(sql);
 			statement.setInt(1, offset);
@@ -109,10 +117,11 @@ public class TripService {
 				allTrips.add(trip);
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			System.out.println("SQL Command Exception");
+		} catch(NullPointerException c) {
+			throw new NullPointerException("Result Set,statement, or connection is Null");
 		}finally {
-			Connections.closeConnection();
-			
+			Connections.getInstance().closeConnection();
 		}
 			
 		return allTrips;
@@ -126,7 +135,7 @@ public class TripService {
 	public Trip save(Trip trip) {
 		 
 		 try {
-			Connection connection = Connections.getConnection();
+			Connection connection = Connections.getInstance().getConnection();
 			String sql = "INSERT INTO trip(company_id,aircraft_model,town_from,town_to,time_out,time_in) VALUES(?,?,?,?,?,?)";
 			PreparedStatement statement = connection.prepareStatement(sql);
 			
@@ -138,11 +147,12 @@ public class TripService {
 			statement.setString(6, trip.getTimeIn());
 			statement.executeUpdate();
 			
-		} catch (SQLException e) {
-			e.printStackTrace();
+		}catch (SQLException e) {
+			System.out.println("SQL Command Exception");
+		} catch(NullPointerException c) {
+			throw new NullPointerException("Result Set,statement, or connection is Null");
 		}finally {
-			Connections.closeConnection();
-			
+			Connections.getInstance().closeConnection();
 		}
 		  return trip;
 	 }
@@ -156,10 +166,12 @@ public class TripService {
 	 public Trip update(int id,Trip trip) {
 		 		 
 		 try {
-			Connection connection = Connections.getConnection();
+			Connection connection = Connections.getInstance().getConnection();
 			String sql = "UPDATE trip SET company_id = ?,aircraft_model = ?,town_from = ?,town_to = ?, time_out = ?, time_in = ? WHERE id = " + id;
 			PreparedStatement statement = connection.prepareStatement(sql);
-			
+			Statement stResult =  connection.createStatement();
+			ResultSet rs = stResult.executeQuery("SELECT * FROM trip WHERE id = " + id);
+			if(rs.next()) {
 			statement.setInt(1, trip.getCompanyId());
 			statement.setString(2, trip.getAircraftModel());
 			statement.setString(3, trip.getTownFrom());
@@ -167,11 +179,17 @@ public class TripService {
 			statement.setString(5, trip.getTimeOut());
 			statement.setString(6, trip.getTimeIn());
 			statement.executeUpdate();
-			
-		} catch (SQLException e) {
-			e.printStackTrace();
+			}else {
+				throw new NoSuchElementException();
+			}
+		}  catch (SQLException e) {
+			System.out.println("SQL command exception");
+		} catch(NoSuchElementException b) {
+			throw new NoSuchElementException("Can't find element in database");
+		} catch(NullPointerException c) {
+			throw new NullPointerException("Result Set,statement, or connection is Null");
 		}finally {
-			Connections.closeConnection();
+			Connections.getInstance().closeConnection();
 		}
 		 return trip;
 	 }
@@ -182,14 +200,23 @@ public class TripService {
 	  */
 	 public void delete(int tripId) {
 		 try {
-				Connection connection = Connections.getConnection();
+				Connection connection = Connections.getInstance().getConnection();
 				Statement statement = connection.createStatement();
+				ResultSet rs = statement.executeQuery("SELECT * FROM trip WHERE id = " + tripId);
+				if(rs.next()) {
 				String sql = "DELETE FROM trip WHERE id = " + tripId;
 				statement.executeUpdate(sql);
-			} catch (SQLException e) {
-				e.printStackTrace();
+				}else {
+					throw new NoSuchElementException();
+				}
+			}  catch (SQLException e) {
+				System.out.println("SQL command exception");
+			} catch(NoSuchElementException b) {
+				throw new NoSuchElementException("Can't find element in database");
+			} catch(NullPointerException c) {
+				throw new NullPointerException("Result Set,statement, or connection is Null");
 			}finally {
-				Connections.closeConnection();
+				Connections.getInstance().closeConnection();
 				
 			}
 	 }
@@ -205,7 +232,7 @@ public class TripService {
 		  
 		  Trip trip = null;
 			try {
-				Connection connection = Connections.getConnection();
+				Connection connection = Connections.getInstance().getConnection();
 				Statement statement = connection.createStatement();
 				String sql = "SELECT * FROM trip WHERE town_from = " + city;
 				ResultSet resultSet = statement.executeQuery(sql);
@@ -223,9 +250,11 @@ public class TripService {
 				}
 				
 			} catch (SQLException e) {
-				e.printStackTrace();
+				System.out.println("SQL command exception");
+			} catch(NullPointerException c) {
+				throw new NullPointerException("Result Set,statement, or connection is Null");
 			} finally {
-				Connections.closeConnection();
+				Connections.getInstance().closeConnection();
 			}
 			return tripsFromList;
 		}
@@ -241,7 +270,7 @@ public class TripService {
 		  
 		  Trip trip = null;
 			try {
-				Connection connection = Connections.getConnection();
+				Connection connection = Connections.getInstance().getConnection();
 				Statement statement = connection.createStatement();
 				String sql = "SELECT * FROM trip WHERE town_to = " + city;
 				ResultSet resultSet = statement.executeQuery(sql);
@@ -259,9 +288,11 @@ public class TripService {
 				}
 				
 			} catch (SQLException e) {
-				e.printStackTrace();
+				System.out.println("SQL command exception");
+			} catch(NullPointerException c) {
+				throw new NullPointerException("Result Set,statement, or connection is Null");
 			} finally {
-				Connections.closeConnection();
+				Connections.getInstance().closeConnection();
 			}
 			return tripsToList;
 		}

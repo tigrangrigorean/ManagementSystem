@@ -1,5 +1,7 @@
 package com.airplane.model;
 
+import java.util.Objects;
+
 public class Company {
 	private int id;
 	private String companyName;
@@ -61,4 +63,23 @@ public class Company {
 	public String toString() {
 		return "Company [id=" + id + ", companyName=" + companyName + ", foundingDate=" + foundingDate + "]";
 	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(companyName, foundingDate, id);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Company other = (Company) obj;
+		return Objects.equals(companyName, other.companyName) && Objects.equals(foundingDate, other.foundingDate);
+	}
+
+
 }
