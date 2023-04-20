@@ -1,6 +1,5 @@
 package com.management.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -19,9 +18,11 @@ public class PassengerService {
 	Configuration config;
 	SessionFactory sessionFactory;
 	
+	
 	/**
-	 * Method init configs
+	 * Constructor init configs
 	 */
+	
 	public PassengerService() {
 	config = Configurations.getConfiguration();
 	sessionFactory = Configurations.getSessionFactory();
@@ -156,6 +157,11 @@ public class PassengerService {
     	session.close();
     }
     
+    /**
+     * Method cancels Trip
+     * @param passengerId
+     * @param tripNumber
+     */
     public void cancelTrip(int passengerId, int tripNumber) {
     	Session session = sessionFactory.openSession();
     	session.beginTransaction();

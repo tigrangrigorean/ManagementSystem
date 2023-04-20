@@ -8,9 +8,11 @@ public class Configurations {
 	/**
 	 * Private Constructor
 	 */
+	
 	private Configurations() {
 		
 	}
+	
 	private static Configurations instance;
 	private static Configuration config;
 	private static SessionFactory sessionFactory;
