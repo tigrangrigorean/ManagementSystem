@@ -21,9 +21,9 @@ public class CompanyService {
 	 */
 	public Company getById(int id) {
 		Company company = null;
-		try {
-			Connection connection = Connections.getInstance().getConnection();
-			Statement statement = connection.createStatement();
+		try (Connection connection = Connections.getInstance().getConnection();
+			Statement statement = connection.createStatement()){
+			
 			String sql = "SELECT * FROM company WHERE id = " + id;
 			ResultSet resultSet = statement.executeQuery(sql);
 			company = new Company();
@@ -42,9 +42,6 @@ public class CompanyService {
 			throw new NoSuchElementException("Can't find element in database");
 		} catch(NullPointerException c) {
 			throw new NullPointerException("Result Set,statement, or connection is Null");
-		} finally {
-			Connections.getInstance().closeConnection();
-			
 		}
 		return company;
 	}
@@ -55,9 +52,8 @@ public class CompanyService {
 	 */
 	public Set<Company> getAll() {
 		 Set<Company> allUsers = new LinkedHashSet<Company>();
-			try {
-				Connection connection = Connections.getInstance().getConnection();
-				Statement statement = connection.createStatement();
+			try(Connection connection = Connections.getInstance().getConnection();
+			Statement statement = connection.createStatement()) {
 				String sql = "SELECT * FROM company";
 				ResultSet resultSet = statement.executeQuery(sql);
 				while(resultSet.next()) {
@@ -71,8 +67,6 @@ public class CompanyService {
 				System.out.println("SQL Command Exception");
 			} catch(NullPointerException c) {
 				throw new NullPointerException("Result Set,statement, or connection is Null");
-			}finally {
-				Connections.getInstance().closeConnection();
 			}
 			return allUsers;
 	 }
@@ -88,10 +82,9 @@ public class CompanyService {
 		Set<Company> companyList = new LinkedHashSet<Company>();
 		
 		
-		try {
-			Connection connection = Connections.getInstance().getConnection();
-			String sql = "SELECT * FROM company WHERE id >= ? ORDER BY " + sort + " LIMIT ?";
-			PreparedStatement statement = connection.prepareStatement(sql);
+		try(Connection connection = Connections.getInstance().getConnection();
+			     PreparedStatement statement = connection.prepareStatement("SELECT * FROM company WHERE id >= ? ORDER BY " + sort + " LIMIT ?")) {
+			
 			statement.setInt(1, offset);
 			statement.setInt(2, perPage);
 			
@@ -108,8 +101,6 @@ public class CompanyService {
 			System.out.println("SQL Command Exception");
 		} catch(NullPointerException c) {
 			throw new NullPointerException("Result Set,statement, or connection is Null");
-		}finally {
-			Connections.getInstance().closeConnection();
 		}
 			
 		return companyList;
@@ -122,10 +113,8 @@ public class CompanyService {
 	 */
 	public Company save(Company company) {
 		 
-		 try {
-			Connection connection = Connections.getInstance().getConnection();
-			String sql = "INSERT INTO company(company_name,founding_date) VALUES(?,?)";
-			PreparedStatement statement = connection.prepareStatement(sql);
+		 try(Connection connection = Connections.getInstance().getConnection();
+			PreparedStatement statement = connection.prepareStatement("INSERT INTO company(company_name,founding_date) VALUES(?,?)")) {
 			
 			statement.setString(1, company.getCompanyName());
 			statement.setString(2, company.getFoundingDate());
@@ -135,8 +124,6 @@ public class CompanyService {
 			System.out.println("SQL Command Exception");
 		} catch(NullPointerException c) {
 			throw new NullPointerException("Result Set,statement, or connection is Null");
-		}finally {
-			Connections.getInstance().closeConnection();
 		}
 		  return company;
 	 }
@@ -149,10 +136,9 @@ public class CompanyService {
 	 */
 	 public Company update(int id,Company company) {
 		 		 
-		 try {
-			Connection connection = Connections.getInstance().getConnection();
-			String sql = "UPDATE company SET company_name = ?,founding_date = ? WHERE id = " + id;
-			PreparedStatement statement = connection.prepareStatement(sql);
+		 try (Connection connection = Connections.getInstance().getConnection();
+					PreparedStatement statement = connection.prepareStatement("UPDATE company SET company_name = ?,founding_date = ? WHERE id = " + id)) {
+			 
 			Statement stResult =  connection.createStatement();
 			ResultSet rs = stResult.executeQuery("SELECT * FROM company WHERE id = " + id);
 			if(rs.next()) {
@@ -168,8 +154,6 @@ public class CompanyService {
 			throw new NoSuchElementException("Can't find element in database");
 		} catch(NullPointerException c) {
 			throw new NullPointerException("Result Set,statement, or connection is Null");
-		}finally {
-			Connections.getInstance().closeConnection();
 		}
 		 return company;
 	 }
@@ -179,9 +163,9 @@ public class CompanyService {
 	  * @param companyId
 	  */
 	 public void delete(int companyId) {
-		 try {
-				Connection connection = Connections.getInstance().getConnection();
-				Statement statement = connection.createStatement();
+		 try (Connection connection = Connections.getInstance().getConnection();
+				Statement statement = connection.createStatement()){
+				
 				ResultSet rs = statement.executeQuery("SELECT * FROM company WHERE id = " + companyId);
 				String sql = "DELETE FROM company WHERE id = " + companyId;
 				if(rs.next()) {
@@ -196,8 +180,6 @@ public class CompanyService {
 				throw new NoSuchElementException("Can't find element in database");
 			} catch(NullPointerException c) {
 				throw new NullPointerException("Result Set,statement, or connection is Null");
-			}finally {
-				Connections.getInstance().closeConnection();
 			}
 	 }
 	
